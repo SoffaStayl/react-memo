@@ -5,7 +5,6 @@
   align-items: center;
   justify-content: center;
 }
-
 .modal {
   width: 480px;
   height: 459px;
@@ -16,7 +15,6 @@
   justify-content: center;
   align-items: center;
 }
-
 .title {
   color: #004980;
   text-align: center;
@@ -27,7 +25,6 @@
   font-weight: 400;
   line-height: 48px;
 }
-
 .levels {
   display: flex;
   flex-direction: row;
@@ -35,7 +32,6 @@
   margin-top: 48px;
   margin-bottom: 28px;
 }
-
 .level {
   display: flex;
   width: 97px;
@@ -43,11 +39,9 @@
   flex-direction: column;
   justify-content: center;
   flex-shrink: 0;
-
   border-radius: 12px;
   background: #fff;
 }
-
 .levelLink {
   color: #0080c1;
   text-align: center;
@@ -58,7 +52,14 @@
   line-height: 72px;
   text-decoration: none;
 }
-
 .levelLink:visited {
   color: #0080c1;
+}
+
+.chooseEasyMod {
+  color: #0080c1;
+  text-align: center;
+  font-family: StratosSkyeng;
+  text-decoration: none;
+  margin-bottom: 10px;
 }
