@@ -5,14 +5,12 @@
   padding-top: 22px;
   box-sizing: border-box;
 }
-
 .cards {
   display: flex;
   flex-direction: row;
   gap: 10px;
   flex-wrap: wrap;
 }
-
 .modalContainer {
   position: absolute;
   top: 0;
@@ -24,18 +22,15 @@
   align-items: center;
   background: #004980c0;
 }
-
 .header {
   display: flex;
   justify-content: space-between;
   align-items: end;
   margin-bottom: 35px;
 }
-
 .timer {
   display: flex;
   align-items: end;
-
   color: #fff;
   font-family: StratosSkyeng;
   font-size: 64px;
@@ -43,7 +38,6 @@
   font-weight: 400;
   line-height: 72px;
 }
-
 .previewText {
   font-size: 30px;
   line-height: 30px;
@@ -54,11 +48,9 @@
   font-size: 18px;
   line-height: 18px;
 }
-
 .timerValue {
   text-align: right;
 }
-
 .timerDescription {
   color: #fff;
   font-variant-numeric: lining-nums proportional-nums;
@@ -69,4 +61,18 @@
   line-height: 32px;
 
   margin-bottom: -12px;
+}
+
+.lifesCont {
+  color: #fff;
+  font-variant-numeric: lining-nums proportional-nums;
+  font-family: StratosSkyeng;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 32px;
+  margin-bottom: -12px;
+  &::after {
+    content: "❤️"
+  }
 }

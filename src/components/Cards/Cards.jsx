@@ -5,6 +5,7 @@ import styles from "./Cards.module.css";
 import { EndGameModal } from "../../components/EndGameModal/EndGameModal";
 import { Button } from "../../components/Button/Button";
 import { Card } from "../../components/Card/Card";
+import { useModContext } from "../context/useModContext";
 
 // Игра закончилась
 const STATUS_LOST = "STATUS_LOST";
@@ -13,7 +14,6 @@ const STATUS_WON = "STATUS_WON";
 const STATUS_IN_PROGRESS = "STATUS_IN_PROGRESS";
 // Начало игры: игрок видит все карты в течении нескольких секунд
 const STATUS_PREVIEW = "STATUS_PREVIEW";
-
 function getTimerValue(startDate, endDate) {
   if (!startDate && !endDate) {
     return {
@@ -21,11 +21,9 @@ function getTimerValue(startDate, endDate) {
       seconds: 0,
     };
   }
-
   if (endDate === null) {
     endDate = new Date();
   }
-
   const diffInSecconds = Math.floor((endDate.getTime() - startDate.getTime()) / 1000);
   const minutes = Math.floor(diffInSecconds / 60);
   const seconds = diffInSecconds % 60;
@@ -34,28 +32,31 @@ function getTimerValue(startDate, endDate) {
     seconds,
   };
 }
-
 /**
  * Основной компонент игры, внутри него находится вся игровая механика и логика.
  * pairsCount - сколько пар будет в игре
  * previewSeconds - сколько секунд пользователь будет видеть все карты открытыми до начала игры
  */
 export function Cards({ pairsCount = 3, previewSeconds = 5 }) {
+  const { isEasyMod } = useModContext();
   // В cards лежит игровое поле - массив карт и их состояние открыта\закрыта
   const [cards, setCards] = useState([]);
   // Текущий статус игры
   const [status, setStatus] = useState(STATUS_PREVIEW);
-
   // Дата начала игры
   const [gameStartDate, setGameStartDate] = useState(null);
   // Дата конца игры
   const [gameEndDate, setGameEndDate] = useState(null);
-
   // Стейт для таймера, высчитывается в setInteval на основе gameStartDate и gameEndDate
   const [timer, setTimer] = useState({
     seconds: 0,
     minutes: 0,
   });
+
+  const [lifes, setLifes] = useState(isEasyMod ? 3 : 1);
+  // const userTry = () => {
+  //   setLifes(lifes => lifes - 1);
+  // };
 
   function finishGame(status = STATUS_LOST) {
     setGameEndDate(new Date());
@@ -74,7 +75,6 @@ export function Cards({ pairsCount = 3, previewSeconds = 5 }) {
     setTimer(getTimerValue(null, null));
     setStatus(STATUS_PREVIEW);
   }
-
   /**
    * Обработка основного действия в игре - открытие карты.
    * После открытия карты игра может пепереходит в следующие состояния
@@ -92,76 +92,77 @@ export function Cards({ pairsCount = 3, previewSeconds = 5 }) {
       if (card.id !== clickedCard.id) {
         return card;
       }
-
       return {
         ...card,
         open: true,
       };
     });
-
     setCards(nextCards);
-
     const isPlayerWon = nextCards.every(card => card.open);
-
     // Победа - все карты на поле открыты
     if (isPlayerWon) {
       finishGame(STATUS_WON);
       return;
     }
-
     // Открытые карты на игровом поле
     const openCards = nextCards.filter(card => card.open);
-
     // Ищем открытые карты, у которых нет пары среди других открытых
     const openCardsWithoutPair = openCards.filter(card => {
       const sameCards = openCards.filter(openCard => card.suit === openCard.suit && card.rank === openCard.rank);
-
       if (sameCards.length < 2) {
         return true;
       }
-
       return false;
     });
+    if (isEasyMod) {
+      if (openCardsWithoutPair.length >= 2) {
+        openCardsWithoutPair.forEach(wrongCard => {
+          const foundWrongCard = nextCards.find(card => card.id === wrongCard.id);
+          if (foundWrongCard) {
+            foundWrongCard.open = false;
+          }
+        });
 
-    const playerLost = openCardsWithoutPair.length >= 2;
-
-    // "Игрок проиграл", т.к на поле есть две открытые карты без пары
-    if (playerLost) {
-      finishGame(STATUS_LOST);
-      return;
+        setLifes(lifes => lifes - 1);
+        setCards([...nextCards]);
+      }
+      if (lifes === 0) {
+        finishGame(STATUS_LOST);
+        return;
+      }
+    } else {
+      // "Игрок проиграл", т.к на поле есть две открытые карты без пары
+      const playerLost = openCardsWithoutPair.length >= 2;
+      if (playerLost) {
+        finishGame(STATUS_LOST);
+        return;
+      }
     }
 
     // ... игра продолжается
   };
-
   const isGameEnded = status === STATUS_LOST || status === STATUS_WON;
-
   // Игровой цикл
   useEffect(() => {
     // В статусах кроме превью доп логики не требуется
     if (status !== STATUS_PREVIEW) {
       return;
     }
-
     // В статусе превью мы
     if (pairsCount > 36) {
       alert("Столько пар сделать невозможно");
       return;
     }
-
     setCards(() => {
       return shuffle(generateDeck(pairsCount, 10));
     });
-
     const timerId = setTimeout(() => {
       startGame();
     }, previewSeconds * 1000);
-
     return () => {
       clearTimeout(timerId);
     };
   }, [status, pairsCount, previewSeconds]);
-
   // Обновляем значение таймера в интервале
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -171,7 +172,6 @@ export function Cards({ pairsCount = 3, previewSeconds = 5 }) {
       clearInterval(intervalId);
     };
   }, [gameStartDate, gameEndDate]);
-
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -195,6 +195,7 @@ export function Cards({ pairsCount = 3, previewSeconds = 5 }) {
             </>
           )}
         </div>
+
         {status === STATUS_IN_PROGRESS ? <Button onClick={resetGame}>Начать заново</Button> : null}
       </div>
 
@@ -208,6 +209,12 @@ export function Cards({ pairsCount = 3, previewSeconds = 5 }) {
             rank={card.rank}
           />
         ))}
+      </div>
+
+      <div>
+        <div>
+          <p className={styles.lifesCont}>Жизней: {lifes}</p>
+        </div>
       </div>
 
       {isGameEnded ? (
